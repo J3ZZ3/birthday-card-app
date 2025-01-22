@@ -23,7 +23,7 @@ A React Native application that allows users to create personalized digital birt
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-username/birthday-card-app.git
+   git clone https://github.com/J3ZZ3/birthday-card-app.git
    ```
 
 2. Install dependencies:

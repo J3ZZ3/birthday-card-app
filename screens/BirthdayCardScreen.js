@@ -9,6 +9,7 @@ import {
   Platform,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 
 export default function BirthdayCardScreen() {
   const [recipientName, setRecipientName] = useState('');
@@ -17,6 +18,12 @@ export default function BirthdayCardScreen() {
   const [fontSize, setFontSize] = useState(16);
 
   const colors = ['#000000', '#FF0000', '#0000FF', '#008000', '#FFA500'];
+
+  const pickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaType.Images,
+    });
+  }
 
   return (
     <ScrollView style={styles.container}>

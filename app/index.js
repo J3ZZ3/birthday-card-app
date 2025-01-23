@@ -3,13 +3,17 @@ import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView, Alert,
 import ViewShot from 'react-native-view-shot';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
+import { StatusBar } from 'react-native';
+import Card from './components/Card';
+import DecorationSelector from './components/DecorationSelector';
+import InputField from './components/InputField';
 
 export default function App() {
   const [recipientName, setRecipientName] = useState("");
   const [message, setMessage] = useState("");
   const [decoration, setDecoration] = useState("🎉");
-  const [cardColor, setCardColor] = useState("#ffe4e1"); // Default card color
-  const viewShotRef = useRef(); // Reference for ViewShot
+  const [cardColor, setCardColor] = useState("#ffe4e1");
+  const viewShotRef = useRef();
 
   const handleCardCreation = async () => {
     if (!recipientName) {
@@ -18,17 +22,14 @@ export default function App() {
     }
 
     try {
-      // Capture the card as an image
       const uri = await viewShotRef.current.capture();
       const fileUri = FileSystem.documentDirectory + 'birthday_card.png';
 
-      // Move the captured image to the desired location
       await FileSystem.moveAsync({
         from: uri,
         to: fileUri,
       });
 
-      // Share the image
       await Sharing.shareAsync(fileUri);
     } catch (error) {
       console.error('Error capturing or sharing card:', error);
@@ -51,58 +52,42 @@ export default function App() {
   };
 
   return (
-    <ImageBackground
-      source={require('../assets/images/background.jpg')} // Path to your background image
-      style={styles.background}
-    >
-      <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.header}>🎂 Create Your Birthday Card 🎂</Text>
+    <>
+      <StatusBar barStyle="light-content" backgroundColor="#6200ee" />
+      <ImageBackground
+        source={require('../assets/images/background.jpg')}
+        style={styles.background}
+      >
+        <ScrollView contentContainerStyle={styles.container}>
+          <Text style={styles.header}>🎂 Create Your Birthday Card 🎂</Text>
 
-        {/* Input for recipient's name */}
-        <Text style={styles.label}>Recipient's Name:</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter name"
-          value={recipientName}
-          onChangeText={setRecipientName}
-        />
+          <InputField
+            label="Recipient's Name:"
+            value={recipientName}
+            onChangeText={setRecipientName}
+          />
 
-        {/* Input for message */}
-        <Text style={styles.label}>Message:</Text>
-        <TextInput
-          style={[styles.input, styles.textArea]}
-          placeholder="Enter your message"
-          multiline
-          numberOfLines={4}
-          value={message}
-          onChangeText={setMessage}
-        />
+          <InputField
+            label="Message:"
+            value={message}
+            onChangeText={setMessage}
+            multiline
+            numberOfLines={4}
+          />
 
-        {/* Add decoration */}
-        <Text style={styles.label}>Decoration:</Text>
-        <View style={styles.decorationRow}>
-          {["🎉", "🎈", "🎁", "🍰", "🌟"].map((item, index) => (
-            <TouchableOpacity key={index} onPress={() => setDecoration(item)}>
-              <Text style={styles.decoration}>{item}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+          <Text style={styles.label}>Decoration:</Text>
+          <DecorationSelector decoration={decoration} setDecoration={setDecoration} />
 
-        {/* Display birthday card preview */}
-        <TouchableOpacity onPress={handleCardClick}>
-          <ViewShot ref={viewShotRef} options={{ format: 'png', quality: 0.9 }} style={[styles.card, { backgroundColor: cardColor }]}>
-            <Text style={styles.cardText}>{decoration}</Text>
-            <Text style={styles.cardText}>{`Happy Birthday, ${recipientName}!`}</Text>
-            <Text style={styles.cardMessage}>{message}</Text>
-            <Text style={styles.cardText}>{decoration}</Text>
-          </ViewShot>
-        </TouchableOpacity>
+          <TouchableOpacity onPress={handleCardClick}>
+            <Card ref={viewShotRef} cardColor={cardColor} decoration={decoration} recipientName={recipientName} message={message} />
+          </TouchableOpacity>
 
-        <TouchableOpacity style={styles.button} onPress={handleCardCreation}>
-          <Text style={styles.buttonText}>Create and Download Card</Text>
-        </TouchableOpacity>
-      </ScrollView>
-    </ImageBackground>
+          <TouchableOpacity style={styles.button} onPress={handleCardCreation}>
+            <Text style={styles.buttonText}>Create and Download Card</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </ImageBackground>
+    </>
   );
 }
 

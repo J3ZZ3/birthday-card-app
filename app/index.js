@@ -1,7 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, TextInput, Button, Image, StyleSheet, TouchableOpacity, ScrollView, Alert } from "react-native";
-import * as ImagePicker from "expo-image-picker";
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView, Alert, ImageBackground } from "react-native";
 import ViewShot from 'react-native-view-shot';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
@@ -9,29 +7,9 @@ import * as Sharing from 'expo-sharing';
 export default function App() {
   const [recipientName, setRecipientName] = useState("");
   const [message, setMessage] = useState("");
-  const [selectedImage, setSelectedImage] = useState(null);
   const [decoration, setDecoration] = useState("🎉");
+  const [cardColor, setCardColor] = useState("#ffe4e1"); // Default card color
   const viewShotRef = useRef(); // Reference for ViewShot
-
-  // Function to pick an image from the gallery
-  const pickImage = async () => {
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-    if (permissionResult.granted === false) {
-      alert("Permission to access the gallery is required!");
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: [ImagePicker.MediaType.Images],
-      allowsEditing: true,
-      quality: 1,
-    });
-
-    if (!result.canceled) {
-      setSelectedImage(result.assets[0].uri);
-    }
-  };
 
   const handleCardCreation = async () => {
     if (!recipientName) {
@@ -58,68 +36,84 @@ export default function App() {
     }
   };
 
+  const handleCardClick = () => {
+    const colors = [
+      "#ffe4e1", "#ffcccb", "#add8e6", "#90ee90", "#ffebcd",
+      "#ffb6c1", "#ffdab9", "#e6e6fa", "#f0e68c", "#f08080",
+      "#fafad2", "#d3d3d3", "#ff69b4", "#ff7f50", "#ff6347",
+      "#ff4500", "#ffd700", "#ffffe0", "#f5deb3", "#ffe4b5",
+      "#ffe4c4", "#ff1493", "#ff8c00", "#98fb98", "#afeeee",
+      "#add8e6", "#f5f5dc", "#d8bfd8", "#ffb5c5", "#f0f8ff",
+      "#e0ffff",
+    ];
+    const randomColor = colors[Math.floor(Math.random() * colors.length)];
+    setCardColor(randomColor);
+  };
+
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.header}>🎂 Create Your Birthday Card 🎂</Text>
+    <ImageBackground
+      source={require('../assets/images/background.jpg')} // Path to your background image
+      style={styles.background}
+    >
+      <ScrollView contentContainerStyle={styles.container}>
+        <Text style={styles.header}>🎂 Create Your Birthday Card 🎂</Text>
 
-      {/* Input for recipient's name */}
-      <Text style={styles.label}>Recipient's Name:</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Enter name"
-        value={recipientName}
-        onChangeText={setRecipientName}
-      />
+        {/* Input for recipient's name */}
+        <Text style={styles.label}>Recipient's Name:</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter name"
+          value={recipientName}
+          onChangeText={setRecipientName}
+        />
 
-      {/* Input for message */}
-      <Text style={styles.label}>Message:</Text>
-      <TextInput
-        style={[styles.input, styles.textArea]}
-        placeholder="Enter your message"
-        multiline
-        numberOfLines={4}
-        value={message}
-        onChangeText={setMessage}
-      />
+        {/* Input for message */}
+        <Text style={styles.label}>Message:</Text>
+        <TextInput
+          style={[styles.input, styles.textArea]}
+          placeholder="Enter your message"
+          multiline
+          numberOfLines={4}
+          value={message}
+          onChangeText={setMessage}
+        />
 
-      {/* Pick an image */}
-      <Button title="Pick an Image" onPress={pickImage} />
+        {/* Add decoration */}
+        <Text style={styles.label}>Decoration:</Text>
+        <View style={styles.decorationRow}>
+          {["🎉", "🎈", "🎁", "🍰", "🌟"].map((item, index) => (
+            <TouchableOpacity key={index} onPress={() => setDecoration(item)}>
+              <Text style={styles.decoration}>{item}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
 
-      {/* Display selected image */}
-      {selectedImage && (
-        <Image source={{ uri: selectedImage }} style={styles.image} />
-      )}
+        {/* Display birthday card preview */}
+        <TouchableOpacity onPress={handleCardClick}>
+          <ViewShot ref={viewShotRef} options={{ format: 'png', quality: 0.9 }} style={[styles.card, { backgroundColor: cardColor }]}>
+            <Text style={styles.cardText}>{decoration}</Text>
+            <Text style={styles.cardText}>{`Happy Birthday, ${recipientName}!`}</Text>
+            <Text style={styles.cardMessage}>{message}</Text>
+            <Text style={styles.cardText}>{decoration}</Text>
+          </ViewShot>
+        </TouchableOpacity>
 
-      {/* Add decoration */}
-      <Text style={styles.label}>Decoration:</Text>
-      <View style={styles.decorationRow}>
-        {["🎉", "🎈", "🎁", "🍰", "🌟"].map((item, index) => (
-          <TouchableOpacity key={index} onPress={() => setDecoration(item)}>
-            <Text style={styles.decoration}>{item}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      {/* Display birthday card preview */}
-      <ViewShot ref={viewShotRef} options={{ format: 'png', quality: 0.9 }} style={styles.card}>
-        <Text style={styles.cardText}>{decoration}</Text>
-        <Text style={styles.cardText}>{`Happy Birthday, ${recipientName}!`}</Text>
-        <Text style={styles.cardMessage}>{message}</Text>
-        <Text style={styles.cardText}>{decoration}</Text>
-      </ViewShot>
-
-      <TouchableOpacity style={styles.button} onPress={handleCardCreation}>
-        <Text style={styles.buttonText}>Create and Download Card</Text>
-      </TouchableOpacity>
-    </ScrollView>
+        <TouchableOpacity style={styles.button} onPress={handleCardCreation}>
+          <Text style={styles.buttonText}>Create and Download Card</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
+  background: {
+    flex: 1,
+    justifyContent: 'center',
+  },
   container: {
     flexGrow: 1,
     padding: 20,
-    backgroundColor: "#fff",
   },
   header: {
     fontSize: 24,
@@ -144,13 +138,6 @@ const styles = StyleSheet.create({
     height: 80,
     textAlignVertical: "top",
   },
-  image: {
-    width: "100%",
-    height: 200,
-    resizeMode: "cover",
-    borderRadius: 10,
-    marginVertical: 20,
-  },
   decorationRow: {
     flexDirection: "row",
     justifyContent: "space-around",
@@ -165,7 +152,6 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 20,
     alignItems: "center",
-    backgroundColor: "#ffe4e1",
     marginTop: 20,
   },
   cardText: {
